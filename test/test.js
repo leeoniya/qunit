@@ -70,7 +70,7 @@ module("async setup test", {
 	setup: function() {
 	  stop();
 		setTimeout(function(){
-	    ok(true);
+			ok(true);
 			start();
 		}, 500);
 	}
@@ -84,10 +84,10 @@ asyncTest("module with async setup", function() {
 
 module("async teardown test", {
 	teardown: function() {
-  	stop();
+		stop();
 		setTimeout(function(){
-	    ok(true);
-		  start();
+			ok(true);
+			start();
 		}, 500);
 	}
 });
@@ -97,9 +97,7 @@ asyncTest("module with async teardown", function() {
 	ok(true);
 	start();
 });
-} // end setTimeout tests
 
-if (typeof asyncTest !== 'undefined') {
 module("asyncTest");
 
 asyncTest("asyncTest", function() {
@@ -120,7 +118,7 @@ asyncTest("asyncTest", 2, function() {
 		start();
 	}, 13);
 });
-} // end asyncTest tests
+}
 
 module("save scope", {
 	setup: function() {
@@ -182,8 +180,8 @@ test("makeurl working",function() {
 });
 
 module("testEnvironment with makeurl settings", {
-	url:'http://google.com/',
-q:'another_search_test'
+	url: 'http://google.com/',
+	q: 'another_search_test'
 });
 test("makeurl working with settings from testEnvironment", function() {
 	equal( makeurl(), 'http://google.com/?q=another_search_test', 'rather than passing arguments, we use test metadata to form the url');
@@ -196,20 +194,12 @@ test("each test can extend the module testEnvironment", {
 
 module("jsDump");
 test("jsDump output", function() {
-	equals( QUnit.jsDump.parse([1, 2]), "[ 1, 2 ]" );
-	equals( QUnit.jsDump.parse({top: 5, left: 0}), "{ \"top\": 5, \"left\": 0 }" );
-	if (typeof document !== 'undefined') {
+	equals( QUnit.jsDump.parse([1, 2]), "[\n  1,\n  2\n]" );
+	equals( QUnit.jsDump.parse({top: 5, left: 0}), "{\n  \"top\": 5,\n  \"left\": 0\n}" );
+	if (typeof document !== 'undefined' && document.getElementById("qunit-header")) {
 		equals( QUnit.jsDump.parse(document.getElementById("qunit-header")), "<h1 id=\"qunit-header\"></h1>" );
-		equals( QUnit.jsDump.parse(document.getElementsByTagName("h1")), "[ <h1 id=\"qunit-header\"></h1> ]" );
+		equals( QUnit.jsDump.parse(document.getElementsByTagName("h1")), "[\n  <h1 id=\"qunit-header\"></h1>\n]" );
 	}
-});
-
-module("diff");
-test("basics", function() {
-	var expected = "<em>the</em> quick <del>brown </del> fox <del>jumped </del><del><strong>over</strong> </del><ins>jumps </ins><ins><strong>o</strong>ver </ins>",
-		// for some reason, the diff output has some misleading whitespace; doesn't matter when outputting html
-		actual = QUnit.diff("<em>the</em> quick brown fox jumped <strong>over</strong>", "<em>the</em> quick fox jumps <strong>o</strong>ver").replace(/^\s+/, '').replace(/\s+$/, '');
-	equal(actual, expected); 
 });
 
 module("assertions");
@@ -228,7 +218,8 @@ test("raises", function() {
 	raises(thrower3, 'Custom!', 'throwing custom object');
 });
 
-/* currently fixture reset depends on jQuery's html() method, can't test that, yet
+if (typeof document !== "undefined") {
+
 module("fixture");
 test("setup", function() {
 	document.getElementById("qunit-fixture").innerHTML = "foobar";
@@ -236,4 +227,34 @@ test("setup", function() {
 test("basics", function() {
 	equal( document.getElementById("qunit-fixture").innerHTML, "test markup", "automatically reset" );
 });
-*/
+
+}
+
+module("custom assertions");
+(function() {
+	function mod2(value, expected, message) {
+		var actual = value % 2;
+		QUnit.push(actual == expected, actual, expected, message);
+	}
+	test("mod2", function() {
+		mod2(2, 0, "2 % 2 == 0");
+		mod2(3, 1, "3 % 2 == 1");
+	})
+})();
+
+(function() {
+	var reset = QUnit.reset;
+	function afterTest() {
+		ok( false, "reset should not modify test status" );
+	}
+	module("reset");
+	test("reset runs assertions", function() {
+		QUnit.reset = function() {
+			afterTest();
+			reset.apply( this, arguments );
+		};
+	});
+	test("reset runs assertions2", function() {
+		QUnit.reset = reset;
+	});
+})();
